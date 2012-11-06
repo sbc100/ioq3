@@ -299,7 +299,7 @@ LIB=lib
 INSTALL=install
 MKDIR=mkdir
 
-ifneq (,$(findstring "$(PLATFORM)", "linux" "gnu_kfreebsd" "kfreebsd-gnu"))
+ifneq (,$(findstring "$(PLATFORM)", "nacl", "linux" "gnu_kfreebsd" "kfreebsd-gnu"))
 
   ifeq ($(ARCH),x86_64)
     LIB=lib64
@@ -311,6 +311,10 @@ ifneq (,$(findstring "$(PLATFORM)", "linux" "gnu_kfreebsd" "kfreebsd-gnu"))
     LIB=lib64
   endif
   endif
+  endif
+
+  ifeq ($(PLATFORM),nacl)
+    LDFLAGS+=-shared
   endif
 
   BASE_CFLAGS = -Wall -fno-strict-aliasing -Wimplicit -Wstrict-prototypes \

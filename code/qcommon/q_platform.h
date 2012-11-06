@@ -136,7 +136,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #endif
 
-
 //============================================================== MAC OS X ===
 
 #if defined(MACOS_X) || defined(__APPLE_CC__)
@@ -169,12 +168,14 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 //================================================================= LINUX ===
 
-#if defined(__linux__) || defined(__FreeBSD_kernel__)
+#if defined(__linux__) || defined(__FreeBSD_kernel__) || defined(__native_client__)
 
 #include <endian.h>
 
 #if defined(__linux__)
 #define OS_STRING "linux"
+#elif defined(__native_client__)
+#define OS_STRING "nacl"
 #else
 #define OS_STRING "kFreeBSD"
 #endif
