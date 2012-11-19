@@ -313,10 +313,6 @@ ifneq (,$(findstring "$(PLATFORM)", "nacl", "linux" "gnu_kfreebsd" "kfreebsd-gnu
   endif
   endif
 
-  ifeq ($(PLATFORM),nacl)
-    LDFLAGS+=-shared
-  endif
-
   BASE_CFLAGS = -Wall -fno-strict-aliasing -Wimplicit -Wstrict-prototypes \
     -pipe -DUSE_ICON
   CLIENT_CFLAGS += $(SDL_CFLAGS)
@@ -363,11 +359,17 @@ ifneq (,$(findstring "$(PLATFORM)", "nacl", "linux" "gnu_kfreebsd" "kfreebsd-gnu
   SHLIBCFLAGS=-fPIC -fvisibility=hidden
   SHLIBLDFLAGS=-shared $(LDFLAGS)
 
-  THREAD_LIBS=-lpthread
+  THREAD_LIBS=-pthread
   LIBS=-ldl -lm
 
+  ifeq ($(PLATFORM),nacl)
+    SDL_LIBS += -lppapi_cpp -lppapi
+    RENDERER_LIBS = $(SDL_LIBS) -lRegal -lppapi_gles2
+  else
+    RENDERER_LIBS = $(SDL_LIBS) -lGL
+  endif
+
   CLIENT_LIBS=$(SDL_LIBS)
-  RENDERER_LIBS = $(SDL_LIBS) -lGL
 
   ifeq ($(USE_OPENAL),1)
     ifneq ($(USE_OPENAL_DLOPEN),1)
@@ -1183,6 +1185,8 @@ $(echo_cmd) "WINDRES $<"
 $(Q)$(WINDRES) -i $< -o $@
 endef
 
+LD?=$(CC)
+
 
 #############################################################################
 # MAIN TARGETS
@@ -1234,6 +1238,7 @@ targets: makedirs
 ifeq ($(PLATFORM),mingw32)
 	@echo "  WINDRES: $(WINDRES)"
 endif
+	@echo "  LD: $(LD)"
 	@echo ""
 	@echo "  CFLAGS:"
 	$(call print_wrapped, $(CFLAGS) $(OPTIMIZE))
@@ -1388,7 +1393,7 @@ $(B)/tools/rcc/%.o: $(Q3LCCSRCDIR)/%.c
 
 $(Q3RCC): $(Q3RCCOBJ)
 	$(echo_cmd) "LD $@"
-	$(Q)$(TOOLS_CC) $(TOOLS_CFLAGS) $(TOOLS_LDFLAGS) -o $@ $^ $(TOOLS_LIBS)
+	$(Q)$(TOOLS_LD) $(TOOLS_CFLAGS) $(TOOLS_LDFLAGS) -o $@ $^ $(TOOLS_LIBS)
 
 Q3CPPOBJ = \
   $(B)/tools/cpp/cpp.o \
@@ -1407,7 +1412,7 @@ $(B)/tools/cpp/%.o: $(Q3CPPDIR)/%.c
 
 $(Q3CPP): $(Q3CPPOBJ)
 	$(echo_cmd) "LD $@"
-	$(Q)$(TOOLS_CC) $(TOOLS_CFLAGS) $(TOOLS_LDFLAGS) -o $@ $^ $(TOOLS_LIBS)
+	$(Q)$(TOOLS_LD) $(TOOLS_CFLAGS) $(TOOLS_LDFLAGS) -o $@ $^ $(TOOLS_LIBS)
 
 Q3LCCOBJ = \
 	$(B)/tools/etc/lcc.o \
@@ -1418,7 +1423,7 @@ $(B)/tools/etc/%.o: $(Q3LCCETCDIR)/%.c
 
 $(Q3LCC): $(Q3LCCOBJ) $(Q3RCC) $(Q3CPP)
 	$(echo_cmd) "LD $@"
-	$(Q)$(TOOLS_CC) $(TOOLS_CFLAGS) $(TOOLS_LDFLAGS) -o $@ $(Q3LCCOBJ) $(TOOLS_LIBS)
+	$(Q)$(TOOLS_LD) $(TOOLS_CFLAGS) $(TOOLS_LDFLAGS) -o $@ $(Q3LCCOBJ) $(TOOLS_LIBS)
 
 define DO_Q3LCC
 $(echo_cmd) "Q3LCC $<"
@@ -1470,7 +1475,7 @@ $(B)/tools/asm/%.o: $(Q3ASMDIR)/%.c
 
 $(Q3ASM): $(Q3ASMOBJ)
 	$(echo_cmd) "LD $@"
-	$(Q)$(TOOLS_CC) $(TOOLS_CFLAGS) $(TOOLS_LDFLAGS) -o $@ $^ $(TOOLS_LIBS)
+	$(Q)$(TOOLS_LD) $(TOOLS_CFLAGS) $(TOOLS_LDFLAGS) -o $@ $^ $(TOOLS_LIBS)
 
 
 #############################################################################
@@ -2009,18 +2014,18 @@ endif
 ifneq ($(USE_RENDERER_DLOPEN),0)
 $(B)/$(CLIENTBIN)$(FULLBINEXT): $(Q3OBJ) $(LIBSDLMAIN)
 	$(echo_cmd) "LD $@"
-	$(Q)$(CC) $(CLIENT_CFLAGS) $(CFLAGS) $(CLIENT_LDFLAGS) $(LDFLAGS) \
+	$(Q)$(LD) $(CLIENT_CFLAGS) $(CFLAGS) $(CLIENT_LDFLAGS) $(LDFLAGS) \
 		-o $@ $(Q3OBJ) \
 		$(LIBSDLMAIN) $(CLIENT_LIBS) $(LIBS)
 
 $(B)/renderer_opengl1_$(SHLIBNAME): $(Q3ROBJ) $(JPGOBJ)
 	$(echo_cmd) "LD $@"
-	$(Q)$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(Q3ROBJ) $(JPGOBJ) \
+	$(Q)$(LD) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(Q3ROBJ) $(JPGOBJ) \
 		$(THREAD_LIBS) $(LIBSDLMAIN) $(RENDERER_LIBS) $(LIBS)
 
 $(B)/renderer_opengl2_$(SHLIBNAME): $(Q3R2OBJ) $(Q3R2STRINGOBJ) $(JPGOBJ)
 	$(echo_cmd) "LD $@"
-	$(Q)$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(Q3R2OBJ) $(Q3R2STRINGOBJ) $(JPGOBJ) \
+	$(Q)$(LD) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(Q3R2OBJ) $(Q3R2STRINGOBJ) $(JPGOBJ) \
 		$(THREAD_LIBS) $(LIBSDLMAIN) $(RENDERER_LIBS) $(LIBS)
 else
 $(B)/$(CLIENTBIN)$(FULLBINEXT): $(Q3OBJ) $(Q3ROBJ) $(JPGOBJ) $(LIBSDLMAIN)
@@ -2031,7 +2036,7 @@ $(B)/$(CLIENTBIN)$(FULLBINEXT): $(Q3OBJ) $(Q3ROBJ) $(JPGOBJ) $(LIBSDLMAIN)
 
 $(B)/$(CLIENTBIN)_opengl2$(FULLBINEXT): $(Q3OBJ) $(Q3R2OBJ) $(Q3R2STRINGOBJ) $(JPGOBJ) $(LIBSDLMAIN)
 	$(echo_cmd) "LD $@"
-	$(Q)$(CC) $(CLIENT_CFLAGS) $(CFLAGS) $(CLIENT_LDFLAGS) $(LDFLAGS) \
+	$(Q)$(LD) $(CLIENT_CFLAGS) $(CFLAGS) $(CLIENT_LDFLAGS) $(LDFLAGS) \
 		-o $@ $(Q3OBJ) $(Q3R2OBJ) $(Q3R2STRINGOBJ) $(JPGOBJ) \
 		$(LIBSDLMAIN) $(CLIENT_LIBS) $(RENDERER_LIBS) $(LIBS)
 endif
@@ -2173,7 +2178,7 @@ endif
 
 $(B)/$(SERVERBIN)$(FULLBINEXT): $(Q3DOBJ)
 	$(echo_cmd) "LD $@"
-	$(Q)$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(Q3DOBJ) $(LIBS)
+	$(Q)$(LD) $(CFLAGS) $(LDFLAGS) -o $@ $(Q3DOBJ) $(LIBS)
 
 
 
@@ -2214,7 +2219,7 @@ Q3CGVMOBJ = $(Q3CGOBJ_:%.o=%.asm)
 
 $(B)/$(BASEGAME)/cgame$(SHLIBNAME): $(Q3CGOBJ)
 	$(echo_cmd) "LD $@"
-	$(Q)$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(Q3CGOBJ)
+	$(Q)$(LD) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(Q3CGOBJ)
 
 $(B)/$(BASEGAME)/vm/cgame.qvm: $(Q3CGVMOBJ) $(CGDIR)/cg_syscalls.asm $(Q3ASM)
 	$(echo_cmd) "Q3ASM $@"
@@ -2259,7 +2264,7 @@ MPCGVMOBJ = $(MPCGOBJ_:%.o=%.asm)
 
 $(B)/$(MISSIONPACK)/cgame$(SHLIBNAME): $(MPCGOBJ)
 	$(echo_cmd) "LD $@"
-	$(Q)$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(MPCGOBJ)
+	$(Q)$(LD) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(MPCGOBJ)
 
 $(B)/$(MISSIONPACK)/vm/cgame.qvm: $(MPCGVMOBJ) $(CGDIR)/cg_syscalls.asm $(Q3ASM)
 	$(echo_cmd) "Q3ASM $@"
@@ -2312,7 +2317,7 @@ Q3GVMOBJ = $(Q3GOBJ_:%.o=%.asm)
 
 $(B)/$(BASEGAME)/qagame$(SHLIBNAME): $(Q3GOBJ)
 	$(echo_cmd) "LD $@"
-	$(Q)$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(Q3GOBJ)
+	$(Q)$(LD) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(Q3GOBJ)
 
 $(B)/$(BASEGAME)/vm/qagame.qvm: $(Q3GVMOBJ) $(GDIR)/g_syscalls.asm $(Q3ASM)
 	$(echo_cmd) "Q3ASM $@"
@@ -2363,7 +2368,7 @@ MPGVMOBJ = $(MPGOBJ_:%.o=%.asm)
 
 $(B)/$(MISSIONPACK)/qagame$(SHLIBNAME): $(MPGOBJ)
 	$(echo_cmd) "LD $@"
-	$(Q)$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(MPGOBJ)
+	$(Q)$(LD) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(MPGOBJ)
 
 $(B)/$(MISSIONPACK)/vm/qagame.qvm: $(MPGVMOBJ) $(GDIR)/g_syscalls.asm $(Q3ASM)
 	$(echo_cmd) "Q3ASM $@"
@@ -2426,7 +2431,7 @@ Q3UIVMOBJ = $(Q3UIOBJ_:%.o=%.asm)
 
 $(B)/$(BASEGAME)/ui$(SHLIBNAME): $(Q3UIOBJ)
 	$(echo_cmd) "LD $@"
-	$(Q)$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(Q3UIOBJ)
+	$(Q)$(LD) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(Q3UIOBJ)
 
 $(B)/$(BASEGAME)/vm/ui.qvm: $(Q3UIVMOBJ) $(UIDIR)/ui_syscalls.asm $(Q3ASM)
 	$(echo_cmd) "Q3ASM $@"
@@ -2454,7 +2459,7 @@ MPUIVMOBJ = $(MPUIOBJ_:%.o=%.asm)
 
 $(B)/$(MISSIONPACK)/ui$(SHLIBNAME): $(MPUIOBJ)
 	$(echo_cmd) "LD $@"
-	$(Q)$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(MPUIOBJ)
+	$(Q)$(LD) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(MPUIOBJ)
 
 $(B)/$(MISSIONPACK)/vm/ui.qvm: $(MPUIVMOBJ) $(UIDIR)/ui_syscalls.asm $(Q3ASM)
 	$(echo_cmd) "Q3ASM $@"
