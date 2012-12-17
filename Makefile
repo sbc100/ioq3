@@ -363,7 +363,7 @@ ifneq (,$(findstring "$(PLATFORM)", "nacl", "linux" "gnu_kfreebsd" "kfreebsd-gnu
   LIBS=-ldl -lm
 
   ifeq ($(PLATFORM),nacl)
-    SDL_LIBS += -lppapi_cpp -lppapi
+    SDL_LIBS := $(SDL_LIBS) -lppapi_cpp -lppapi
     RENDERER_LIBS = $(SDL_LIBS) -lRegal -lppapi_gles2
   else
     RENDERER_LIBS = $(SDL_LIBS) -lGL
