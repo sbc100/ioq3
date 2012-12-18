@@ -548,7 +548,7 @@ void Sys_ErrorDialog( const char *error )
 	close( f );
 }
 
-#ifndef MACOS_X
+#if !defined MACOS_X && !defined __native_client__
 static char execBuffer[ 1024 ];
 static char *execBufferPointer;
 static char *execArgv[ 16 ];
@@ -865,17 +865,21 @@ void Sys_SetEnv(const char *name, const char *value)
 Sys_PID
 ==============
 */
+#ifndef __native_client__
 int Sys_PID( void )
 {
 	return getpid( );
 }
+#endif
 
 /*
 ==============
 Sys_PIDIsRunning
 ==============
 */
+#ifndef __native_client__
 qboolean Sys_PIDIsRunning( int pid )
 {
 	return kill( pid, 0 ) == 0;
 }
+#endif

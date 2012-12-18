@@ -140,11 +140,12 @@ Sys_PIDFileName
 */
 static char *Sys_PIDFileName( void )
 {
+#ifndef __native_client__
 	const char *homePath = Sys_DefaultHomePath( );
 
 	if( *homePath != '\0' )
 		return va( "%s/%s", homePath, PID_FILENAME );
-
+#endif
 	return NULL;
 }
 
@@ -157,6 +158,9 @@ Return qtrue if there is an existing stale PID file
 */
 qboolean Sys_WritePIDFile( void )
 {
+#ifdef __native_client__
+	return qfalse;
+#else
 	char      *pidFile = Sys_PIDFileName( );
 	FILE      *f;
 	qboolean  stale = qfalse;
@@ -192,6 +196,7 @@ qboolean Sys_WritePIDFile( void )
 		Com_Printf( S_COLOR_YELLOW "Couldn't write %s.\n", pidFile );
 
 	return stale;
+#endif
 }
 
 /*

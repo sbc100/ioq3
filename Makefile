@@ -313,8 +313,8 @@ ifneq (,$(findstring "$(PLATFORM)", "nacl", "linux" "gnu_kfreebsd" "kfreebsd-gnu
   endif
   endif
 
-  BASE_CFLAGS = -Wall -fno-strict-aliasing -Wimplicit -Wstrict-prototypes \
-    -pipe -DUSE_ICON
+  BASE_CCFLAGS = -Wstrict-prototypes
+  BASE_CFLAGS = -Wall -fno-strict-aliasing -Wimplicit -pipe -DUSE_ICON
   CLIENT_CFLAGS += $(SDL_CFLAGS)
 
   OPTIMIZEVM = -O3 -funroll-loops -fomit-frame-pointer
@@ -363,7 +363,7 @@ ifneq (,$(findstring "$(PLATFORM)", "nacl", "linux" "gnu_kfreebsd" "kfreebsd-gnu
   LIBS=-ldl -lm
 
   ifeq ($(PLATFORM),nacl)
-    SDL_LIBS := $(SDL_LIBS) -lppapi_cpp -lppapi
+    SDL_LIBS := $(SDL_LIBS) -lppapi_cpp
     RENDERER_LIBS = $(SDL_LIBS) -lRegal -lppapi_gles2
   else
     RENDERER_LIBS = $(SDL_LIBS) -lGL
@@ -1082,10 +1082,11 @@ else
 endif
 
 BASE_CFLAGS += -DPRODUCT_VERSION=\\\"$(VERSION)\\\"
-BASE_CFLAGS += -Wformat=2 -Wno-format-zero-length -Wformat-security -Wno-format-nonliteral
+BASE_CFLAGS += -Wformat=2 -Wformat-security -Wno-format-nonliteral
 BASE_CFLAGS += -Wstrict-aliasing=2 -Wmissing-format-attribute
 BASE_CFLAGS += -Wdisabled-optimization
-BASE_CFLAGS += -Werror-implicit-function-declaration
+
+BASE_CCFLAGS += -Wno-format-zero-length -Werror-implicit-function-declaration
 
 ifeq ($(V),1)
 echo_cmd=@:
@@ -1098,6 +1099,11 @@ endif
 define DO_CC
 $(echo_cmd) "CC $<"
 $(Q)$(CC) $(NOTSHLIBCFLAGS) $(CFLAGS) $(CLIENT_CFLAGS) $(OPTIMIZE) -o $@ -c $<
+endef
+
+define DO_CXX
+$(echo_cmd) "CXX $<"
+$(Q)$(CXX) $(NOTSHLIBCFLAGS) $(CXXFLAGS) $(CLIENT_CFLAGS) $(OPTIMIZE) -o $@ -c $<
 endef
 
 define DO_REF_CC
@@ -1196,12 +1202,14 @@ default: release
 all: debug release
 
 debug:
-	@$(MAKE) targets B=$(BD) CFLAGS="$(CFLAGS) $(BASE_CFLAGS) $(DEPEND_CFLAGS)" \
+	@$(MAKE) targets B=$(BD) CFLAGS="$(CFLAGS) $(BASE_CCFLAGS) $(BASE_CFLAGS) $(DEPEND_CFLAGS)" \
+	  CXXFLAGS="$(CXXFLAGS) $(BASE_CFLAGS) $(DEPEND_CFLAGS)" \
 	  OPTIMIZE="$(DEBUG_CFLAGS)" OPTIMIZEVM="$(DEBUG_CFLAGS)" \
 	  CLIENT_CFLAGS="$(CLIENT_CFLAGS)" SERVER_CFLAGS="$(SERVER_CFLAGS)" V=$(V)
 
 release:
-	@$(MAKE) targets B=$(BR) CFLAGS="$(CFLAGS) $(BASE_CFLAGS) $(DEPEND_CFLAGS)" \
+	@$(MAKE) targets B=$(BR) CFLAGS="$(CFLAGS) $(BASE_CCFLAGS) $(BASE_CFLAGS) $(DEPEND_CFLAGS)" \
+	  CXXFLAGS="$(CXXFLAGS) $(BASE_CFLAGS) $(DEPEND_CFLAGS)" \
 	  OPTIMIZE="-DNDEBUG $(OPTIMIZE)" OPTIMIZEVM="-DNDEBUG $(OPTIMIZEVM)" \
 	  CLIENT_CFLAGS="$(CLIENT_CFLAGS)" SERVER_CFLAGS="$(SERVER_CFLAGS)" V=$(V)
 
@@ -2001,6 +2009,13 @@ else
     $(B)/client/sys_unix.o
 endif
 
+ifeq ($(PLATFORM),nacl)
+  Q3OBJ += \
+    $(B)/client/quake_instance.o \
+    $(B)/client/quake_module.o \
+    $(B)/client/sys_nacl.o
+endif
+
 ifeq ($(PLATFORM),darwin)
   Q3OBJ += \
     $(B)/client/sys_osx.o
@@ -2519,6 +2534,9 @@ $(B)/client/%.o: $(SDLDIR)/%.c
 
 $(B)/client/%.o: $(SYSDIR)/%.c
 	$(DO_CC)
+
+$(B)/client/%.o: $(SYSDIR)/nacl/%.cpp
+	$(DO_CXX)
 
 $(B)/client/%.o: $(SYSDIR)/%.m
 	$(DO_CC)
