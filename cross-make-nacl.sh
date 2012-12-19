@@ -1,4 +1,13 @@
 #!/bin/sh
+# Script for building ioquake for NaCl
+#
+# Before running this script you need to have installed some
+# NaCl libraries from naclports.
+#  export NACL_GLIBC=1
+#  export NACL_PACKAGES_BITSIZE=64
+#  export NACL_SDK_ROOT=/path/to/pepper_sdk
+#  make regal
+#  make sdl
 
 if [ -z "$NACL_SDK_ROOT" ]; then
    echo "Set \$NACL_SDK_ROOT to build for NaCl"
