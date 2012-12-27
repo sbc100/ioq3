@@ -583,11 +583,13 @@ static void FillCloudBox( const shader_t *shader, int stage )
 		{
 			for ( s = sky_mins_subd[0]+HALF_SKY_SUBDIVISIONS; s <= sky_maxs_subd[0]+HALF_SKY_SUBDIVISIONS; s++ )
 			{
+                        /*
 				MakeSkyVec( ( s - HALF_SKY_SUBDIVISIONS ) / ( float ) HALF_SKY_SUBDIVISIONS, 
 							( t - HALF_SKY_SUBDIVISIONS ) / ( float ) HALF_SKY_SUBDIVISIONS, 
 							i, 
 							NULL,
 							s_skyPoints[t][s] );
+                                */
 
 				s_skyTexCoords[t][s][0] = s_cloudTexCoords[i][t][s][0];
 				s_skyTexCoords[t][s][1] = s_cloudTexCoords[i][t][s][1];
@@ -595,7 +597,7 @@ static void FillCloudBox( const shader_t *shader, int stage )
 		}
 
 		// only add indexes for first stage
-		FillCloudySkySide( sky_mins_subd, sky_maxs_subd, ( stage == 0 ) );
+		//FillCloudySkySide( sky_mins_subd, sky_maxs_subd, ( stage == 0 ) );
 	}
 }
 
@@ -771,7 +773,7 @@ void RB_StageIteratorSky( void ) {
 		GL_State( 0 );
 		qglTranslatef (backEnd.viewParms.or.origin[0], backEnd.viewParms.or.origin[1], backEnd.viewParms.or.origin[2]);
 
-		DrawSkyBox( tess.shader );
+		//DrawSkyBox( tess.shader );
 
 		qglPopMatrix();
 	}

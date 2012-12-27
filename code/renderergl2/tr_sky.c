@@ -672,6 +672,7 @@ static void FillCloudBox( const shader_t *shader, int stage )
 		else if ( sky_maxs_subd[1] > HALF_SKY_SUBDIVISIONS ) 
 			sky_maxs_subd[1] = HALF_SKY_SUBDIVISIONS;
 
+/*
 		//
 		// iterate through the subdivisions
 		//
@@ -692,6 +693,7 @@ static void FillCloudBox( const shader_t *shader, int stage )
 
 		// only add indexes for first stage
 		FillCloudySkySide( sky_mins_subd, sky_maxs_subd, ( stage == 0 ) );
+                */
 	}
 }
 
@@ -885,7 +887,7 @@ void RB_StageIteratorSky( void ) {
 
 		}
 
-		DrawSkyBox( tess.shader );
+		//DrawSkyBox( tess.shader );
 
 		GL_SetModelviewMatrix( oldmodelview );
 	}
