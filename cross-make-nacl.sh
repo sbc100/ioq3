@@ -25,7 +25,7 @@ export PKG_CONFIG_PATH=$NACL_SDK_ROOT/toolchain/linux_x86_glibc/x86_64-nacl/usr/
 export PATH=$NACL_SDK_ROOT/toolchain/linux_x86_glibc/bin:$PATH
 
 # Build
-make $*
+make $* || exit $?
 
 # Create nmf
 EXE=build/release-nacl-$ARCH/ioquake3.$ARCH.nexe
