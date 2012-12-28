@@ -2571,7 +2571,7 @@ Find out whether we have SSE support for Q_ftol function
 =================
 */
 
-#if id386 || idx64
+#if (id386 || idx64) && !defined(__native_client__)
 
 static void Com_DetectSSE(void)
 {

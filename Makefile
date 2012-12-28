@@ -320,6 +320,7 @@ ifneq (,$(findstring "$(PLATFORM)", "nacl", "linux" "gnu_kfreebsd" "kfreebsd-gnu
   OPTIMIZEVM = -O3 -funroll-loops -fomit-frame-pointer
   OPTIMIZE = $(OPTIMIZEVM) -ffast-math
 
+  ifneq ($(PLATFORM),nacl)
   ifeq ($(ARCH),x86_64)
     OPTIMIZEVM = -O3 -fomit-frame-pointer -funroll-loops \
       -falign-loops=2 -falign-jumps=2 -falign-functions=2 \
@@ -354,6 +355,7 @@ ifneq (,$(findstring "$(PLATFORM)", "nacl", "linux" "gnu_kfreebsd" "kfreebsd-gnu
   endif
   endif
   endif
+  endif
 
   SHLIBEXT=so
   SHLIBCFLAGS=-fPIC -fvisibility=hidden
@@ -363,6 +365,7 @@ ifneq (,$(findstring "$(PLATFORM)", "nacl", "linux" "gnu_kfreebsd" "kfreebsd-gnu
   LIBS=-ldl -lm
 
   ifeq ($(PLATFORM),nacl)
+    BASE_CFLAGS += "--std=gnu99"
     BINEXT=.nexe
     SDL_LIBS := $(SDL_LIBS) -lppapi_cpp
     RENDERER_LIBS = $(SDL_LIBS) -lRegal -lppapi_gles2
@@ -1768,6 +1771,7 @@ ifneq ($(USE_INTERNAL_JPEG),0)
     $(B)/renderergl1/jutils.o
 endif
 
+ifneq ($(PLATFORM),nacl)
 ifeq ($(ARCH),x86)
   Q3OBJ += \
     $(B)/client/snd_mixa.o \
@@ -1779,6 +1783,7 @@ ifeq ($(ARCH),x86_64)
   Q3OBJ += \
     $(B)/client/snapvector.o \
     $(B)/client/ftola.o
+endif
 endif
 
 ifeq ($(USE_VOIP),1)
