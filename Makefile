@@ -369,6 +369,7 @@ ifneq (,$(findstring "$(PLATFORM)", "nacl", "linux" "gnu_kfreebsd" "kfreebsd-gnu
     BINEXT=.nexe
     SDL_LIBS := $(SDL_LIBS) -lppapi_cpp
     RENDERER_LIBS = $(SDL_LIBS) -lRegal -lppapi_gles2
+    LIBS += $(SDL_LIBS) -lppapi_cpp -lppapi
   else
     RENDERER_LIBS = $(SDL_LIBS) -lGL
   endif
@@ -2195,6 +2196,13 @@ endif
 ifeq ($(PLATFORM),darwin)
   Q3DOBJ += \
     $(B)/ded/sys_osx.o
+endif
+
+ifeq ($(PLATFORM),nacl)
+  Q3DOBJ += \
+    $(B)/client/quake_instance.o \
+    $(B)/client/quake_module.o \
+    $(B)/client/sys_nacl.o
 endif
 
 $(B)/$(SERVERBIN)$(FULLBINEXT): $(Q3DOBJ)

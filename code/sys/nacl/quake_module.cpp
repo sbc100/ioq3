@@ -6,6 +6,13 @@
 #include <stdio.h>
 #include "quake_instance.h"
 
+extern "C"
+{
+// For Com_Printf
+#include "../../qcommon/q_shared.h"
+#include "../../qcommon/qcommon.h"
+}
+
 namespace quake_pepper
 {
 
@@ -20,6 +27,7 @@ public:
 
 	virtual pp::Instance* CreateInstance(PP_Instance instance)
 	{
+		Com_Printf("quake_module: CreateInstance\n");
 		return new QuakePepperInstance(instance);
 	}
 };
@@ -36,6 +44,7 @@ namespace pp
 
 Module* CreateModule()
 {
+	Com_Printf("quake_module: CreateModule\n");
 	return new quake_pepper::QuakePepperModule();
 }
 

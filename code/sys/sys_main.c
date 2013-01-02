@@ -584,7 +584,11 @@ void Sys_SigHandler( int signal )
 main
 =================
 */
+#ifdef __native_client__
+int quake_main( int argc, char **argv )
+#else
 int main( int argc, char **argv )
+#endif
 {
 	int   i;
 	char  commandLine[ MAX_STRING_CHARS ] = { 0 };
@@ -640,7 +644,9 @@ int main( int argc, char **argv )
 		Q_strcat( commandLine, sizeof( commandLine ), " " );
 	}
 
+        Com_Printf("calling Com_Init\n");
 	Com_Init( commandLine );
+        Com_Printf("done Com_Init\n");
 	NET_Init( );
 
 	CON_Init( );
