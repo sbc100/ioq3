@@ -644,9 +644,7 @@ int main( int argc, char **argv )
 		Q_strcat( commandLine, sizeof( commandLine ), " " );
 	}
 
-        Com_Printf("calling Com_Init\n");
 	Com_Init( commandLine );
-        Com_Printf("done Com_Init\n");
 	NET_Init( );
 
 	CON_Init( );

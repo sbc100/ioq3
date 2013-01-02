@@ -521,6 +521,7 @@ void Sys_ErrorDialog( const char *error )
 	Sys_Dialog( DT_ERROR, va( "%s. See \"%s\" for details.", error, ospath ), "Error" );
 #endif
 
+#ifndef __native_client__
 	// Make sure the write path for the crashlog exists...
 	if( FS_CreatePath( ospath ) ) {
 		Com_Printf( "ERROR: couldn't create path '%s' for crash log.\n", ospath );
@@ -546,6 +547,7 @@ void Sys_ErrorDialog( const char *error )
 	}
 
 	close( f );
+#endif
 }
 
 #if !defined MACOS_X && !defined __native_client__

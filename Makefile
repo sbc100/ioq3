@@ -2549,6 +2549,9 @@ $(B)/client/%.o: $(SDLDIR)/%.c
 $(B)/client/%.o: $(SYSDIR)/%.c
 	$(DO_CC)
 
+$(B)/client/%.o: $(SYSDIR)/%.cpp
+	$(DO_CXX)
+
 $(B)/client/%.o: $(SYSDIR)/nacl/%.cpp
 	$(DO_CXX)
 

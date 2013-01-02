@@ -19,11 +19,10 @@ int quake_main(int argc, const char* argv[]);
 }
 
 static void *quake_run(void *arg) {
-	MainThreadRunner *runner = reinterpret_cast<MainThreadRunner*>(arg);
 	static char const * argv[] = {"quake3", NULL};
-  Com_Printf("calling quake_main\n");
-  int rtn = quake_main(1, argv);
-  Com_Printf("quake_main done: %d\n", rtn);
+	Com_Printf("calling quake_main\n");
+	int rtn = quake_main(1, argv);
+	Com_Printf("quake_main done: %d\n", rtn);
 	return 0;
 }
 
@@ -60,8 +59,7 @@ void QuakePepperInstance::DidChangeView(const pp::Rect& position, const pp::Rect
 	if (lval < 0)
 		return;
 
-	runner_ = new MainThreadRunner(this);
-	pthread_create(&quake_thread_, NULL, quake_run, runner_);
+	pthread_create(&quake_thread_, NULL, quake_run, NULL);
 }
 
 bool QuakePepperInstance::HandleInputEvent(const pp::InputEvent& event) {
