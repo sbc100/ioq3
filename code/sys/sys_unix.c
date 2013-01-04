@@ -140,12 +140,18 @@ Sys_GetCurrentUser
 */
 char *Sys_GetCurrentUser( void )
 {
+#ifdef __native_client__
+	// getpwuid crashes under NaCl
+	// TODO(sbc): look into why this is and fix it.
+	return "player";
+#else
 	struct passwd *p;
 
 	if ( (p = getpwuid( getuid() )) == NULL ) {
 		return "player";
 	}
 	return p->pw_name;
+#endif
 }
 
 /*
