@@ -11,8 +11,9 @@
 #include <ppapi/cpp/instance.h>
 #include <ppapi/cpp/rect.h>
 #include "nacl-mounts/base/MainThreadRunner.h"
+#include "nacl-mounts/pepper/PepperDirectoryReader.h"
 
-class QuakePepperInstance : public pp::Instance {
+class QuakePepperInstance : public pp::Instance, public DirectoryReader {
 public:
 	explicit QuakePepperInstance(PP_Instance instance);
 
@@ -27,6 +28,10 @@ public:
 	bool HandleInputEvent(const pp::InputEvent& event);
 
 	bool quit() const { return quit_; }
+
+	int ReadDirectory(const std::string& path,
+	                  std::set<std::string>* entries,
+			  const pp::CompletionCallback& cc);
 
 private:
 	pthread_t quake_thread_;

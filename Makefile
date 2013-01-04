@@ -298,6 +298,9 @@ LIB=lib
 
 INSTALL=install
 MKDIR=mkdir
+ifndef LD
+LD=$(CC)
+endif
 
 ifneq (,$(findstring "$(PLATFORM)", "nacl", "linux" "gnu_kfreebsd" "kfreebsd-gnu"))
 
@@ -369,7 +372,7 @@ ifneq (,$(findstring "$(PLATFORM)", "nacl", "linux" "gnu_kfreebsd" "kfreebsd-gnu
     BINEXT=.nexe
     SDL_LIBS := $(SDL_LIBS) -lppapi_cpp
     RENDERER_LIBS = $(SDL_LIBS) -lRegal -lppapi_gles2
-    LIBS += $(SDL_LIBS) -lppapi_cpp -lppapi
+    LIBS += $(SDL_LIBS) -lppapi_cpp -lppapi -lnacl-mounts
   else
     RENDERER_LIBS = $(SDL_LIBS) -lGL
   endif
@@ -1196,7 +1199,6 @@ $(echo_cmd) "WINDRES $<"
 $(Q)$(WINDRES) -i $< -o $@
 endef
 
-LD?=$(CC)
 
 
 #############################################################################

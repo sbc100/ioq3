@@ -19,13 +19,13 @@ extern pp::Instance* gNaclPPInstance;
 
 static void PostMessage(void* message, int32_t unused)
 {
-	printf("XXXXX\n");
 	gNaclPPInstance->PostMessage(pp::Var((const char*)message));
 }
 
 dialogResult_t Sys_Dialog( dialogType_t type, const char *message, const char *title )
 {
 	printf("DIALOG: %s: %s\n", title, message);
-	pp::Module::Get()->core()->CallOnMainThread(0, pp::CompletionCallback(&PostMessage, (void*)message), PP_OK);
+	//gNaclPPInstance->PostMessage(pp::Var((const char*)message));
+pp::Module::Get()->core()->CallOnMainThread(0, pp::CompletionCallback(&PostMessage, (void*)message), PP_OK);
 	return DR_OK;
 }
