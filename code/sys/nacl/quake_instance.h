@@ -7,6 +7,7 @@
 #define QUAKE_INSTANCE_H
 
 #include <pthread.h>
+#include <set>
 #include <ppapi/cpp/input_event.h>
 #include <ppapi/cpp/instance.h>
 #include <ppapi/cpp/rect.h>

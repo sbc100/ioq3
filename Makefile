@@ -369,6 +369,8 @@ ifneq (,$(findstring "$(PLATFORM)", "nacl", "linux" "gnu_kfreebsd" "kfreebsd-gnu
 
   ifeq ($(PLATFORM),nacl)
     BASE_CCFLAGS += "--std=gnu99"
+    BASE_CFLAGS += "-I$(NACL_SDK_ROOT)/include"
+    BASE_CFLAGS += "-I$(NACL_SDK_ROOT)/ports/include"
     BINEXT=.nexe
     SDL_LIBS := $(SDL_LIBS) -lppapi_cpp
     RENDERER_LIBS = $(SDL_LIBS) -lRegal -lppapi_gles2
