@@ -894,6 +894,9 @@ fileHandle_t FS_FOpenFileWrite( const char *filename ) {
 	if (!fsh[f].handleFiles.file.o) {
 		f = 0;
 	}
+#ifdef __native_client__
+	f = 0;
+#endif
 	return f;
 }
 

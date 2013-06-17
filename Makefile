@@ -1614,8 +1614,13 @@ ifeq ($(PLATFORM),mingw32)
   Q3OBJ += \
     $(B)/client/con_passive.o
 else
+ifeq ($(PLATFORM),nacl)
+  Q3OBJ += \
+    $(B)/client/con_passive.o
+else
   Q3OBJ += \
     $(B)/client/con_tty.o
+endif
 endif
 
 Q3R2OBJ = \

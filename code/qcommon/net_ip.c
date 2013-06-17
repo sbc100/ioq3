@@ -1678,6 +1678,10 @@ void NET_Sleep(int msec)
 			highestfd = ip6_socket;
 	}
 
+#ifdef __native_client__
+	return;
+#endif
+
 #ifdef _WIN32
 	if(highestfd == INVALID_SOCKET)
 	{

@@ -42,5 +42,6 @@ echo $CREATE_NMF
 $CREATE_NMF || echo "creat_nmf failed"
 
 cp misc/index.html build/${CONFIG}-nacl-$ARCH
+${NACL_SDK_ROOT}/tools/genhttpfs.py -r -C build/${CONFIG}-nacl-$ARCH . > build/${CONFIG}-nacl-$ARCH/nacl_manifest.txt
 
 echo "created $NMF"

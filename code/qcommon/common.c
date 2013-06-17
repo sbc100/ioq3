@@ -2893,6 +2893,7 @@ void Com_ReadFromPipe( void )
 void Com_WriteConfigToFile( const char *filename ) {
 	fileHandle_t	f;
 
+  Com_Printf ("Com_WriteConfigToFile\n");
 	f = FS_FOpenFileWrite( filename );
 	if ( !f ) {
 		Com_Printf ("Couldn't write %s.\n", filename );
