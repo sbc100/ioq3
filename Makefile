@@ -278,6 +278,7 @@ ifneq ($(BUILD_CLIENT),0)
   endif
 endif
 
+
 # Add git version info
 USE_GIT=
 ifeq ($(wildcard .git),.git)
@@ -298,8 +299,12 @@ LIB=lib
 
 INSTALL=install
 MKDIR=mkdir
-ifndef LD
-LD=$(CC)
+ifndef LINK
+LINK=$(CC)
+endif
+
+ifndef TOOLS_LD
+TOOLS_LD=$(LINK)
 endif
 
 ifneq (,$(findstring "$(PLATFORM)", "nacl", "linux" "gnu_kfreebsd" "kfreebsd-gnu"))
@@ -371,15 +376,20 @@ ifneq (,$(findstring "$(PLATFORM)", "nacl", "linux" "gnu_kfreebsd" "kfreebsd-gnu
     BASE_CCFLAGS += "--std=gnu99"
     BASE_CFLAGS += "-I$(NACL_SDK_ROOT)/include"
     BASE_CFLAGS += "-I$(NACL_SDK_ROOT)/ports/include"
+    LDFLAGS += "-L$(NACL_SDK_ROOT)/lib/glibc_$(ARCH)/Release"
     BINEXT=.nexe
-    SDL_LIBS := $(SDL_LIBS) -lppapi_cpp
-    RENDERER_LIBS = $(SDL_LIBS) -lRegal -lppapi_gles2
-    LIBS += $(SDL_LIBS) -lppapi_cpp -lppapi -lnacl-mounts
+    SDL_LIBS := -lSDL -lppapi_cpp -lnacl_io -lppapi_gles2 -lRegal
+    RENDERER_LIBS = $(SDL_LIBS)
+    LIBS += $(SDL_LIBS) -lppapi_cpp -lppapi -lnacl_io
   else
     RENDERER_LIBS = $(SDL_LIBS) -lGL
   endif
 
   CLIENT_LIBS=$(SDL_LIBS)
+
+  ifeq ($(PLATFORM),nacl)
+    CLIENT_LIBS += -lSDLmain
+  endif
 
   ifeq ($(USE_OPENAL),1)
     ifneq ($(USE_OPENAL_DLOPEN),1)
@@ -1255,7 +1265,7 @@ targets: makedirs
 ifeq ($(PLATFORM),mingw32)
 	@echo "  WINDRES: $(WINDRES)"
 endif
-	@echo "  LD: $(LD)"
+	@echo "  LD: $(LINK)"
 	@echo ""
 	@echo "  CFLAGS:"
 	$(call print_wrapped, $(CFLAGS) $(OPTIMIZE))
@@ -2022,8 +2032,6 @@ endif
 
 ifeq ($(PLATFORM),nacl)
   Q3OBJ += \
-    $(B)/client/quake_instance.o \
-    $(B)/client/quake_module.o \
     $(B)/client/sys_nacl.o
 endif
 
@@ -2040,18 +2048,18 @@ endif
 ifneq ($(USE_RENDERER_DLOPEN),0)
 $(B)/$(CLIENTBIN)$(FULLBINEXT): $(Q3OBJ) $(LIBSDLMAIN)
 	$(echo_cmd) "LD $@"
-	$(Q)$(LD) $(CLIENT_CFLAGS) $(CFLAGS) $(CLIENT_LDFLAGS) $(LDFLAGS) \
+	$(Q)$(LINK) $(CLIENT_CFLAGS) $(CFLAGS) $(CLIENT_LDFLAGS) $(LDFLAGS) \
 		-o $@ $(Q3OBJ) \
 		$(LIBSDLMAIN) $(CLIENT_LIBS) $(LIBS)
 
 $(B)/renderer_opengl1_$(SHLIBNAME): $(Q3ROBJ) $(JPGOBJ)
 	$(echo_cmd) "LD $@"
-	$(Q)$(LD) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(Q3ROBJ) $(JPGOBJ) \
+	$(Q)$(LINK) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(Q3ROBJ) $(JPGOBJ) \
 		$(THREAD_LIBS) $(LIBSDLMAIN) $(RENDERER_LIBS) $(LIBS)
 
 $(B)/renderer_opengl2_$(SHLIBNAME): $(Q3R2OBJ) $(Q3R2STRINGOBJ) $(JPGOBJ)
 	$(echo_cmd) "LD $@"
-	$(Q)$(LD) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(Q3R2OBJ) $(Q3R2STRINGOBJ) $(JPGOBJ) \
+	$(Q)$(LINK) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(Q3R2OBJ) $(Q3R2STRINGOBJ) $(JPGOBJ) \
 		$(THREAD_LIBS) $(LIBSDLMAIN) $(RENDERER_LIBS) $(LIBS)
 else
 $(B)/$(CLIENTBIN)$(FULLBINEXT): $(Q3OBJ) $(Q3ROBJ) $(JPGOBJ) $(LIBSDLMAIN)
@@ -2062,7 +2070,7 @@ $(B)/$(CLIENTBIN)$(FULLBINEXT): $(Q3OBJ) $(Q3ROBJ) $(JPGOBJ) $(LIBSDLMAIN)
 
 $(B)/$(CLIENTBIN)_opengl2$(FULLBINEXT): $(Q3OBJ) $(Q3R2OBJ) $(Q3R2STRINGOBJ) $(JPGOBJ) $(LIBSDLMAIN)
 	$(echo_cmd) "LD $@"
-	$(Q)$(LD) $(CLIENT_CFLAGS) $(CFLAGS) $(CLIENT_LDFLAGS) $(LDFLAGS) \
+	$(Q)$(LINK) $(CLIENT_CFLAGS) $(CFLAGS) $(CLIENT_LDFLAGS) $(LDFLAGS) \
 		-o $@ $(Q3OBJ) $(Q3R2OBJ) $(Q3R2STRINGOBJ) $(JPGOBJ) \
 		$(LIBSDLMAIN) $(CLIENT_LIBS) $(RENDERER_LIBS) $(LIBS)
 endif
@@ -2205,13 +2213,12 @@ endif
 ifeq ($(PLATFORM),nacl)
   Q3DOBJ += \
     $(B)/client/quake_instance.o \
-    $(B)/client/quake_module.o \
     $(B)/client/sys_nacl.o
 endif
 
 $(B)/$(SERVERBIN)$(FULLBINEXT): $(Q3DOBJ)
 	$(echo_cmd) "LD $@"
-	$(Q)$(LD) $(CFLAGS) $(LDFLAGS) -o $@ $(Q3DOBJ) $(LIBS)
+	$(Q)$(LINK) $(CFLAGS) $(LDFLAGS) -o $@ $(Q3DOBJ) $(LIBS)
 
 
 
@@ -2252,7 +2259,7 @@ Q3CGVMOBJ = $(Q3CGOBJ_:%.o=%.asm)
 
 $(B)/$(BASEGAME)/cgame$(SHLIBNAME): $(Q3CGOBJ)
 	$(echo_cmd) "LD $@"
-	$(Q)$(LD) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(Q3CGOBJ)
+	$(Q)$(LINK) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(Q3CGOBJ)
 
 $(B)/$(BASEGAME)/vm/cgame.qvm: $(Q3CGVMOBJ) $(CGDIR)/cg_syscalls.asm $(Q3ASM)
 	$(echo_cmd) "Q3ASM $@"
@@ -2297,7 +2304,7 @@ MPCGVMOBJ = $(MPCGOBJ_:%.o=%.asm)
 
 $(B)/$(MISSIONPACK)/cgame$(SHLIBNAME): $(MPCGOBJ)
 	$(echo_cmd) "LD $@"
-	$(Q)$(LD) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(MPCGOBJ)
+	$(Q)$(LINK) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(MPCGOBJ)
 
 $(B)/$(MISSIONPACK)/vm/cgame.qvm: $(MPCGVMOBJ) $(CGDIR)/cg_syscalls.asm $(Q3ASM)
 	$(echo_cmd) "Q3ASM $@"
@@ -2350,7 +2357,7 @@ Q3GVMOBJ = $(Q3GOBJ_:%.o=%.asm)
 
 $(B)/$(BASEGAME)/qagame$(SHLIBNAME): $(Q3GOBJ)
 	$(echo_cmd) "LD $@"
-	$(Q)$(LD) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(Q3GOBJ)
+	$(Q)$(LINK) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(Q3GOBJ)
 
 $(B)/$(BASEGAME)/vm/qagame.qvm: $(Q3GVMOBJ) $(GDIR)/g_syscalls.asm $(Q3ASM)
 	$(echo_cmd) "Q3ASM $@"
@@ -2401,7 +2408,7 @@ MPGVMOBJ = $(MPGOBJ_:%.o=%.asm)
 
 $(B)/$(MISSIONPACK)/qagame$(SHLIBNAME): $(MPGOBJ)
 	$(echo_cmd) "LD $@"
-	$(Q)$(LD) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(MPGOBJ)
+	$(Q)$(LINK) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(MPGOBJ)
 
 $(B)/$(MISSIONPACK)/vm/qagame.qvm: $(MPGVMOBJ) $(GDIR)/g_syscalls.asm $(Q3ASM)
 	$(echo_cmd) "Q3ASM $@"
@@ -2464,7 +2471,7 @@ Q3UIVMOBJ = $(Q3UIOBJ_:%.o=%.asm)
 
 $(B)/$(BASEGAME)/ui$(SHLIBNAME): $(Q3UIOBJ)
 	$(echo_cmd) "LD $@"
-	$(Q)$(LD) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(Q3UIOBJ)
+	$(Q)$(LINK) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(Q3UIOBJ)
 
 $(B)/$(BASEGAME)/vm/ui.qvm: $(Q3UIVMOBJ) $(UIDIR)/ui_syscalls.asm $(Q3ASM)
 	$(echo_cmd) "Q3ASM $@"
@@ -2492,7 +2499,7 @@ MPUIVMOBJ = $(MPUIOBJ_:%.o=%.asm)
 
 $(B)/$(MISSIONPACK)/ui$(SHLIBNAME): $(MPUIOBJ)
 	$(echo_cmd) "LD $@"
-	$(Q)$(LD) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(MPUIOBJ)
+	$(Q)$(LINK) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(MPUIOBJ)
 
 $(B)/$(MISSIONPACK)/vm/ui.qvm: $(MPUIVMOBJ) $(UIDIR)/ui_syscalls.asm $(Q3ASM)
 	$(echo_cmd) "Q3ASM $@"
@@ -2824,6 +2831,20 @@ endif
 
 dist:
 	git archive --format zip --output $(CLIENTBIN)-$(VERSION).zip HEAD
+
+ifeq ($(PLATFORM),nacl)
+NMF = $(dir $(B))/ioquake3.nmf
+LIB_PATH = "-L$(NACL_SDK_ROOT)/toolchain/linux_x86_glibc/x86_64-nacl/lib"
+LIB_PATH += "-L$(NACL_SDK_ROOT)/toolchain/linux_x86_glibc/x86_64-nacl/usr/lib"
+NMF_SOFILES = "$(dir $(B))/renderer_opengl1_$(ARCH).so $(dir $(B))/renderer_opengl2_$(ARCH).so"
+
+$(NMF): $(B) $(NMF_SOFILES)
+	echo $(NACL_SDK_ROOT)/tools/create_nmf.py $(LIB_PATH) -D$(NACL_SDK_ROOT)/toolchain/linux_x86_glibc/bin/i686-nacl-objdump $^ -o $@ -s $(dir $(@))
+	touch $@
+
+run: $(B) $(NMF)
+	echo "run"
+endif
 
 #############################################################################
 # DEPENDENCIES

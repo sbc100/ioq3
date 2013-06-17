@@ -310,6 +310,7 @@ void Sys_ListFilteredFiles( const char *basedir, char *subdirs, char *filter, ch
 		Com_sprintf( search, sizeof(search), "%s", basedir );
 	}
 
+
 	if ((fdir = opendir(search)) == NULL) {
 		return;
 	}
@@ -362,6 +363,7 @@ char **Sys_ListFiles( const char *directory, const char *extension, char *filter
 
 	int           extLen;
 
+
 	if (filter) {
 
 		nfiles = 0;
@@ -395,7 +397,11 @@ char **Sys_ListFiles( const char *directory, const char *extension, char *filter
 	// search
 	nfiles = 0;
 
+  fprintf(stderr, "opendir: %s\n", directory);
+
+
 	if ((fdir = opendir(directory)) == NULL) {
+    fprintf(stderr, "opendir: %s failed\n", directory);
 		*numfiles = 0;
 		return NULL;
 	}
@@ -424,6 +430,8 @@ char **Sys_ListFiles( const char *directory, const char *extension, char *filter
 	}
 
 	list[ nfiles ] = NULL;
+
+  fprintf(stderr, "read %d files\n", nfiles);
 
 	closedir(fdir);
 
@@ -513,21 +521,25 @@ Display an error message
 */
 void Sys_ErrorDialog( const char *error )
 {
+#ifndef __native_client__
 	char buffer[ 1024 ];
 	unsigned int size;
 	int f = -1;
+#endif
 	const char *homepath = Cvar_VariableString( "fs_homepath" );
 	const char *gamedir = Cvar_VariableString( "fs_game" );
 	const char *fileName = "crashlog.txt";
+#ifndef __native_client__
 	char *ospath = FS_BuildOSPath( homepath, gamedir, fileName );
+#endif
 
 	Sys_Print( va( "%s\n", error ) );
 
+#ifndef __native_client__
 #ifndef DEDICATED
 	Sys_Dialog( DT_ERROR, va( "%s. See \"%s\" for details.", error, ospath ), "Error" );
 #endif
 
-#ifndef __native_client__
 	// Make sure the write path for the crashlog exists...
 	if( FS_CreatePath( ospath ) ) {
 		Com_Printf( "ERROR: couldn't create path '%s' for crash log.\n", ospath );
@@ -820,6 +832,10 @@ void Sys_SetFloatEnv(void)
 	fesetround(FE_TONEAREST);
 }
 
+#ifdef __native_client__
+Sys_PlatformInitNacl( void );
+#endif
+
 /*
 ==============
 Sys_PlatformInit
@@ -829,6 +845,9 @@ Unix specific initialisation
 */
 void Sys_PlatformInit( void )
 {
+#ifdef __native_client__
+  Sys_PlatformInitNacl();
+#endif
 	const char* term = getenv( "TERM" );
 
 	signal( SIGHUP, Sys_SigHandler );
@@ -839,6 +858,7 @@ void Sys_PlatformInit( void )
 
 	stdinIsATTY = isatty( STDIN_FILENO ) &&
 		!( term && ( !strcmp( term, "raw" ) || !strcmp( term, "dumb" ) ) );
+
 }
 
 /*

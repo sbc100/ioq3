@@ -451,7 +451,8 @@ void *Sys_LoadDll(const char *name, qboolean useSystemLib)
 			topDir = ".";
 
 		Com_Printf("Trying to load \"%s\" from \"%s\"...\n", name, topDir);
-		Com_sprintf(libPath, sizeof(libPath), "%s%c%s", topDir, PATH_SEP, name);
+    //Com_sprintf(libPath, sizeof(libPath), "%s%c%s", topDir, PATH_SEP, name);
+		Com_sprintf(libPath, sizeof(libPath), "foo/../%s", name);
 
 		if(!(dllhandle = Sys_LoadLibrary(libPath)))
 		{
@@ -584,11 +585,7 @@ void Sys_SigHandler( int signal )
 main
 =================
 */
-#ifdef __native_client__
-int quake_main( int argc, char **argv )
-#else
 int main( int argc, char **argv )
-#endif
 {
 	int   i;
 	char  commandLine[ MAX_STRING_CHARS ] = { 0 };
