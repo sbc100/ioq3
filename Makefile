@@ -278,7 +278,6 @@ ifneq ($(BUILD_CLIENT),0)
   endif
 endif
 
-
 # Add git version info
 USE_GIT=
 ifeq ($(wildcard .git),.git)
@@ -321,8 +320,8 @@ ifneq (,$(findstring "$(PLATFORM)", "nacl", "linux" "gnu_kfreebsd" "kfreebsd-gnu
   endif
   endif
 
-  BASE_CCFLAGS = -Wstrict-prototypes
-  BASE_CFLAGS = -Wall -fno-strict-aliasing -Wimplicit -pipe -DUSE_ICON
+  BASE_CFLAGS = -Wall -fno-strict-aliasing -Wimplicit -Wstrict-prototypes \
+    -pipe -DUSE_ICON
   CLIENT_CFLAGS += $(SDL_CFLAGS)
 
   OPTIMIZEVM = -O3 -funroll-loops -fomit-frame-pointer
@@ -373,14 +372,13 @@ ifneq (,$(findstring "$(PLATFORM)", "nacl", "linux" "gnu_kfreebsd" "kfreebsd-gnu
   LIBS=-ldl -lm
 
   ifeq ($(PLATFORM),nacl)
-    BASE_CCFLAGS += "--std=gnu99"
     BASE_CFLAGS += "-I$(NACL_SDK_ROOT)/include"
     BASE_CFLAGS += "-I$(NACL_SDK_ROOT)/ports/include"
     LDFLAGS += "-L$(NACL_SDK_ROOT)/lib/glibc_$(ARCH)/Release"
     BINEXT=.nexe
-    SDL_LIBS := -lSDL -lppapi_cpp -lnacl_io -lppapi_gles2 -lRegal
+    SDL_LIBS := -lSDL -lnacl_io -lppapi_gles2 -lRegal
     RENDERER_LIBS = $(SDL_LIBS)
-    LIBS += $(SDL_LIBS) -lppapi_cpp -lppapi -lnacl_io
+    LIBS += $(SDL_LIBS) -lppapi -lnacl_io
   else
     RENDERER_LIBS = $(SDL_LIBS) -lGL
   endif
@@ -388,7 +386,7 @@ ifneq (,$(findstring "$(PLATFORM)", "nacl", "linux" "gnu_kfreebsd" "kfreebsd-gnu
   CLIENT_LIBS=$(SDL_LIBS)
 
   ifeq ($(PLATFORM),nacl)
-    CLIENT_LIBS += -lSDLmain
+    CLIENT_LIBS += -lSDLmain -ltar
   endif
 
   ifeq ($(USE_OPENAL),1)
@@ -1102,11 +1100,10 @@ else
 endif
 
 BASE_CFLAGS += -DPRODUCT_VERSION=\\\"$(VERSION)\\\"
-BASE_CFLAGS += -Wformat=2 -Wformat-security -Wno-format-nonliteral
+BASE_CFLAGS += -Wformat=2 -Wno-format-zero-length -Wformat-security -Wno-format-nonliteral
 BASE_CFLAGS += -Wstrict-aliasing=2 -Wmissing-format-attribute
 BASE_CFLAGS += -Wdisabled-optimization
-
-BASE_CCFLAGS += -Wno-format-zero-length -Werror-implicit-function-declaration
+BASE_CFLAGS += -Werror-implicit-function-declaration
 
 ifeq ($(V),1)
 echo_cmd=@:
@@ -1119,11 +1116,6 @@ endif
 define DO_CC
 $(echo_cmd) "CC $<"
 $(Q)$(CC) $(NOTSHLIBCFLAGS) $(CFLAGS) $(CLIENT_CFLAGS) $(OPTIMIZE) -o $@ -c $<
-endef
-
-define DO_CXX
-$(echo_cmd) "CXX $<"
-$(Q)$(CXX) $(NOTSHLIBCFLAGS) $(CXXFLAGS) $(CLIENT_CFLAGS) $(OPTIMIZE) -o $@ -c $<
 endef
 
 define DO_REF_CC
@@ -1212,7 +1204,6 @@ $(Q)$(WINDRES) -i $< -o $@
 endef
 
 
-
 #############################################################################
 # MAIN TARGETS
 #############################################################################
@@ -1221,14 +1212,12 @@ default: release
 all: debug release
 
 debug:
-	@$(MAKE) targets B=$(BD) CFLAGS="$(CFLAGS) $(BASE_CCFLAGS) $(BASE_CFLAGS) $(DEPEND_CFLAGS)" \
-	  CXXFLAGS="$(CXXFLAGS) $(BASE_CFLAGS) $(DEPEND_CFLAGS)" \
+	@$(MAKE) targets B=$(BD) CFLAGS="$(CFLAGS) $(BASE_CFLAGS) $(DEPEND_CFLAGS)" \
 	  OPTIMIZE="$(DEBUG_CFLAGS)" OPTIMIZEVM="$(DEBUG_CFLAGS)" \
 	  CLIENT_CFLAGS="$(CLIENT_CFLAGS)" SERVER_CFLAGS="$(SERVER_CFLAGS)" V=$(V)
 
 release:
-	@$(MAKE) targets B=$(BR) CFLAGS="$(CFLAGS) $(BASE_CCFLAGS) $(BASE_CFLAGS) $(DEPEND_CFLAGS)" \
-	  CXXFLAGS="$(CXXFLAGS) $(BASE_CFLAGS) $(DEPEND_CFLAGS)" \
+	@$(MAKE) targets B=$(BR) CFLAGS="$(CFLAGS) $(BASE_CFLAGS) $(DEPEND_CFLAGS)" \
 	  OPTIMIZE="-DNDEBUG $(OPTIMIZE)" OPTIMIZEVM="-DNDEBUG $(OPTIMIZEVM)" \
 	  CLIENT_CFLAGS="$(CLIENT_CFLAGS)" SERVER_CFLAGS="$(SERVER_CFLAGS)" V=$(V)
 
@@ -2564,12 +2553,6 @@ $(B)/client/%.o: $(SDLDIR)/%.c
 
 $(B)/client/%.o: $(SYSDIR)/%.c
 	$(DO_CC)
-
-$(B)/client/%.o: $(SYSDIR)/%.cpp
-	$(DO_CXX)
-
-$(B)/client/%.o: $(SYSDIR)/nacl/%.cpp
-	$(DO_CXX)
 
 $(B)/client/%.o: $(SYSDIR)/%.m
 	$(DO_CC)

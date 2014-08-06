@@ -273,6 +273,53 @@ void Sys_Init(void)
 	Cvar_Set( "username", Sys_GetCurrentUser( ) );
 }
 
+void Sys_NoColorPrint( const char *msg )
+{
+	static char buffer[ MAXPRINTMSG ];
+	int         length = 0;
+	while( *msg )
+	{
+		if( Q_IsColorString( msg ) || *msg == '\n' )
+		{
+			// First empty the buffer
+			if( length > 0 )
+			{
+				buffer[ length ] = '\0';
+				fputs( buffer, stderr );
+				length = 0;
+			}
+
+			if( *msg == '\n' )
+			{
+				// Issue a reset and then the newline
+				fputs( "\n", stderr );
+				msg++;
+			}
+			else
+			{
+				// Skip the color code
+				msg += 2;
+			}
+		}
+		else
+		{
+			if( length >= MAXPRINTMSG - 1 )
+				break;
+
+			buffer[ length ] = *msg;
+			length++;
+			msg++;
+		}
+	}
+
+	// Empty anything still left in the buffer
+	if( length > 0 )
+	{
+		buffer[ length ] = '\0';
+		fputs( buffer, stderr );
+	}
+}
+
 /*
 =================
 Sys_AnsiColorPrint
@@ -452,7 +499,8 @@ void *Sys_LoadDll(const char *name, qboolean useSystemLib)
 
 		Com_Printf("Trying to load \"%s\" from \"%s\"...\n", name, topDir);
     //Com_sprintf(libPath, sizeof(libPath), "%s%c%s", topDir, PATH_SEP, name);
-		Com_sprintf(libPath, sizeof(libPath), "foo/../%s", name);
+		//Com_sprintf(libPath, sizeof(libPath), "foo/../%s", name);
+    Com_sprintf(libPath, sizeof(libPath), "%s%c%s", topDir, PATH_SEP, name);
 
 		if(!(dllhandle = Sys_LoadLibrary(libPath)))
 		{

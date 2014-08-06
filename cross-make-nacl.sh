@@ -3,12 +3,9 @@
 #
 # Before running this script you need to have installed some
 # NaCl libraries from naclports.
-#  export NACL_GLIBC=1
-#  export NACL_PACKAGES_BITSIZE=64
+#  export TOOLCHAIN=glibc
 #  export NACL_SDK_ROOT=/path/to/pepper_sdk
 #  make sdl
-#  make nacl-mounts
-#  make regal
 
 if [ -z "$NACL_SDK_ROOT" ]; then
    echo "Set \$NACL_SDK_ROOT to build for NaCl"
@@ -42,6 +39,7 @@ echo $CREATE_NMF
 $CREATE_NMF || echo "creat_nmf failed"
 
 cp misc/index.html build/${CONFIG}-nacl-$ARCH
-${NACL_SDK_ROOT}/tools/genhttpfs.py -r -C build/${CONFIG}-nacl-$ARCH . > build/${CONFIG}-nacl-$ARCH/nacl_manifest.txt
+DATA_DIR=build/${CONFIG}-nacl-$ARCH
+${NACL_SDK_ROOT}/tools/genhttpfs.py -r -C ${DATA_DIR} . > ${DATA_DIR}/nacl_manifest.txt
 
 echo "created $NMF"
