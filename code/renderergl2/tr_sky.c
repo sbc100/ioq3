@@ -357,6 +357,7 @@ static void MakeSkyVec( float s, float t, int axis, float outSt[2], vec3_t outXY
 	}
 }
 
+#ifndef __native_client__
 static int	sky_texorder[6] = {0,2,1,3,4,5};
 static vec3_t	s_skyPoints[SKY_SUBDIVISIONS+1][SKY_SUBDIVISIONS+1];
 static float	s_skyTexCoords[SKY_SUBDIVISIONS+1][SKY_SUBDIVISIONS+1][2];
@@ -599,6 +600,7 @@ static void FillCloudySkySide( const int mins[2], const int maxs[2], qboolean ad
 		}
 	}
 }
+#endif
 
 static void FillCloudBox( const shader_t *shader, int stage )
 {
@@ -607,7 +609,9 @@ static void FillCloudBox( const shader_t *shader, int stage )
 	for ( i =0; i < 6; i++ )
 	{
 		int sky_mins_subd[2], sky_maxs_subd[2];
+#ifndef __native_client__
 		int s, t;
+#endif
 		float MIN_T;
 
 		if ( 1 ) // FIXME? shader->sky.fullClouds )
@@ -672,7 +676,7 @@ static void FillCloudBox( const shader_t *shader, int stage )
 		else if ( sky_maxs_subd[1] > HALF_SKY_SUBDIVISIONS ) 
 			sky_maxs_subd[1] = HALF_SKY_SUBDIVISIONS;
 
-/*
+#ifndef __native_client__
 		//
 		// iterate through the subdivisions
 		//
@@ -693,7 +697,7 @@ static void FillCloudBox( const shader_t *shader, int stage )
 
 		// only add indexes for first stage
 		FillCloudySkySide( sky_mins_subd, sky_maxs_subd, ( stage == 0 ) );
-                */
+#endif
 	}
 }
 

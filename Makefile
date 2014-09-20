@@ -386,7 +386,8 @@ ifneq (,$(findstring "$(PLATFORM)", "nacl", "linux" "gnu_kfreebsd" "kfreebsd-gnu
   CLIENT_LIBS=$(SDL_LIBS)
 
   ifeq ($(PLATFORM),nacl)
-    CLIENT_LIBS += -lSDLmain -ltar
+    CLIENT_LIBS += -Wl,-unacl_main  -Wl,-uPSUserCreateInstance
+    CLIENT_LIBS += -lppapi_simple -lppapi_cpp -lSDLmain -lcli_main -ltar
   endif
 
   ifeq ($(USE_OPENAL),1)

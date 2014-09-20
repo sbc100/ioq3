@@ -8,6 +8,7 @@
 
 #include <sys/mount.h>
 #include <unistd.h>
+#include <errno.h>
 
 dialogResult_t Sys_Dialog(dialogType_t type, const char *message, const char *title)
 {
@@ -16,13 +17,14 @@ dialogResult_t Sys_Dialog(dialogType_t type, const char *message, const char *ti
 }
 
 void Sys_PlatformInitNacl(void) {
-	int rtn = mount(".",  /* source. Use relative URL */
+	int rtn = mount("./",  /* source. Use relative URL */
 			"/data",  /* target */
 			"httpfs",  /* filesystemtype */
 			0,  /* mountflags */
 			"manifest=nacl_manifest.txt");  /* data */
-	Com_Printf("Created url mount: %d\n", rtn);
-  chdir("/data");
-	Com_Printf("chdir data: %d\n", rtn);
-
+	if (rtn != 0)
+		Com_Printf("url mount failed: %s\n", strerror(errno));
+	rtn = chdir("/data");
+	if (rtn != 0)
+		Com_Printf("chdir /data failed: %s\n", strerror(errno));
 }

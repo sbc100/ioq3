@@ -357,10 +357,13 @@ static void MakeSkyVec( float s, float t, int axis, float outSt[2], vec3_t outXY
 	}
 }
 
+#ifndef __native_client__
 static int	sky_texorder[6] = {0,2,1,3,4,5};
 static vec3_t	s_skyPoints[SKY_SUBDIVISIONS+1][SKY_SUBDIVISIONS+1];
+#endif
 static float	s_skyTexCoords[SKY_SUBDIVISIONS+1][SKY_SUBDIVISIONS+1][2];
 
+#ifndef __native_client__
 static void DrawSkySide( struct image_s *image, const int mins[2], const int maxs[2] )
 {
 	int s, t;
@@ -503,6 +506,7 @@ static void FillCloudySkySide( const int mins[2], const int maxs[2], qboolean ad
 		}
 	}
 }
+#endif
 
 static void FillCloudBox( const shader_t *shader, int stage )
 {
@@ -773,7 +777,9 @@ void RB_StageIteratorSky( void ) {
 		GL_State( 0 );
 		qglTranslatef (backEnd.viewParms.or.origin[0], backEnd.viewParms.or.origin[1], backEnd.viewParms.or.origin[2]);
 
-		//DrawSkyBox( tess.shader );
+#ifndef __native_client__
+		DrawSkyBox( tess.shader );
+#endif
 
 		qglPopMatrix();
 	}

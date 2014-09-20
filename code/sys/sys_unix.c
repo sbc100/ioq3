@@ -529,11 +529,9 @@ void Sys_ErrorDialog( const char *error )
 	char buffer[ 1024 ];
 	unsigned int size;
 	int f = -1;
-#endif
 	const char *homepath = Cvar_VariableString( "fs_homepath" );
 	const char *gamedir = Cvar_VariableString( "fs_game" );
 	const char *fileName = "crashlog.txt";
-#ifndef __native_client__
 	char *ospath = FS_BuildOSPath( homepath, gamedir, fileName );
 #endif
 
@@ -837,7 +835,7 @@ void Sys_SetFloatEnv(void)
 }
 
 #ifdef __native_client__
-Sys_PlatformInitNacl( void );
+void Sys_PlatformInitNacl( void );
 #endif
 
 /*
